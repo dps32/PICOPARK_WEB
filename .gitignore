@@ -1,0 +1,11 @@
+.gradle/
+local.properties
+build/
+android/libs/
+android/.cxx/
+android/build/
+*.class
+*.apk
+*.aab
+*.dex
+local.properties

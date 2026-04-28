@@ -1,0 +1,60 @@
+apply plugin: "gwt"
+apply plugin: "war"
+
+gwt {
+    gwtVersion = rootProject.ext.gwtVersion
+    maxHeapSize = "1G"
+    minHeapSize = "256M"
+
+    src = files(file("src/main/java"))
+    modules "com.picopark.viewer.GdxDefinition"
+    devModules "com.picopark.viewer.GdxDefinitionSuperdev"
+
+    project.webAppDirName = "src/main/webapp"
+
+    compiler {
+        strict = true
+        disableCastChecking = true
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+// Les fonts del core han d'estar al classpath de GWT
+sourceSets.main.java.srcDirs += ["../core/src/main/java"]
+
+dependencies {
+    implementation project(":core")
+    implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx:$gdxVersion:sources"
+    implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion:sources"
+    // WebSocket backend HTML/GWT
+    implementation "com.github.MrStahlfelge.gdx-websockets:html:1.9.10.3"
+    implementation "com.github.MrStahlfelge.gdx-websockets:html:1.9.10.3:sources"
+    implementation "com.github.MrStahlfelge.gdx-websockets:core:1.9.10.3:sources"
+}
+
+// Tasca per produir el dist final a servir
+task dist(dependsOn: [clean, compileGwt]) {
+    doLast {
+        def distDir = file("build/dist")
+        distDir.mkdirs()
+        copy {
+            from "build/gwt/out"
+            into distDir
+        }
+        copy {
+            from "src/main/webapp"
+            into distDir
+            exclude "WEB-INF"
+        }
+        copy {
+            from "../assets"
+            into "$distDir/assets"
+        }
+    }
+}
+dist.mustRunAfter clean

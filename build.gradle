@@ -1,0 +1,29 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" }
+        maven { url "https://jitpack.io" }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.13.2'
+        classpath "org.wisepersist:gwt-gradle-plugin:1.1.16"
+    }
+}
+
+allprojects {
+    version = "1.0"
+    group   = "com.picopark.viewer"
+    repositories {
+        google()
+        mavenCentral()
+        maven { url "https://oss.sonatype.org/content/repositories/releases/" }
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        maven { url "https://jitpack.io" }
+    }
+}
+
+ext {
+    gdxVersion  = "1.13.0"
+    gwtVersion  = "2.10.0"
+}

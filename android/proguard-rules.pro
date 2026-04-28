@@ -1,0 +1,3 @@
+-keep class com.picopark.** { *; }
+-keep class com.badlogic.gdx.** { *; }
+-dontwarn com.badlogic.gdx.**
