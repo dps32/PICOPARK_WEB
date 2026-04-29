@@ -10,7 +10,7 @@
     {
       "id": "anim_1",
       "name": "16x16 Idle-Sheet",
-      "mediaFile": "media/16x16 Idle-Sheet.png",
+      "mediaFile": "media/netanfruits_2.png",
       "startFrame": 0,
       "endFrame": 0,
       "fps": 12.0,
@@ -42,77 +42,187 @@
       "anchorX": 0.5,
       "anchorY": 0.5,
       "anchorColor": "red",
-      "hitBoxes": [],
+      "hitBoxes": [
+        {
+          "id": "__hb_1777398330616015_0",
+          "name": "Hit Box 1",
+          "color": "green",
+          "x": 0.0,
+          "y": 0.0,
+          "width": 1.0,
+          "height": 1.0
+        }
+      ],
       "frameRigs": [
         {
           "frame": 0,
           "anchorX": 0.5,
           "anchorY": 0.5,
           "anchorColor": "red",
-          "hitBoxes": []
+          "hitBoxes": [
+            {
+              "id": "__hb_1777398330616015_0",
+              "name": "Hit Box 1",
+              "color": "green",
+              "x": 0.0,
+              "y": 0.0,
+              "width": 1.0,
+              "height": 1.0
+            }
+          ]
         },
         {
           "frame": 1,
           "anchorX": 0.5,
           "anchorY": 0.5,
           "anchorColor": "red",
-          "hitBoxes": []
+          "hitBoxes": [
+            {
+              "id": "__hb_1777398330616015_0",
+              "name": "Hit Box 1",
+              "color": "green",
+              "x": 0.0,
+              "y": 0.0,
+              "width": 1.0,
+              "height": 1.0
+            }
+          ]
         },
         {
           "frame": 2,
           "anchorX": 0.5,
           "anchorY": 0.5,
           "anchorColor": "red",
-          "hitBoxes": []
+          "hitBoxes": [
+            {
+              "id": "__hb_1777398330616015_0",
+              "name": "Hit Box 1",
+              "color": "green",
+              "x": 0.0,
+              "y": 0.0,
+              "width": 1.0,
+              "height": 1.0
+            }
+          ]
         },
         {
           "frame": 3,
           "anchorX": 0.5,
           "anchorY": 0.5,
           "anchorColor": "red",
-          "hitBoxes": []
+          "hitBoxes": [
+            {
+              "id": "__hb_1777398330616015_0",
+              "name": "Hit Box 1",
+              "color": "green",
+              "x": 0.0,
+              "y": 0.0,
+              "width": 1.0,
+              "height": 1.0
+            }
+          ]
         },
         {
           "frame": 4,
           "anchorX": 0.5,
           "anchorY": 0.5,
           "anchorColor": "red",
-          "hitBoxes": []
+          "hitBoxes": [
+            {
+              "id": "__hb_1777398330616015_0",
+              "name": "Hit Box 1",
+              "color": "green",
+              "x": 0.0,
+              "y": 0.0,
+              "width": 1.0,
+              "height": 1.0
+            }
+          ]
         },
         {
           "frame": 5,
           "anchorX": 0.5,
           "anchorY": 0.5,
           "anchorColor": "red",
-          "hitBoxes": []
+          "hitBoxes": [
+            {
+              "id": "__hb_1777398330616015_0",
+              "name": "Hit Box 1",
+              "color": "green",
+              "x": 0.0,
+              "y": 0.0,
+              "width": 1.0,
+              "height": 1.0
+            }
+          ]
         },
         {
           "frame": 6,
           "anchorX": 0.5,
           "anchorY": 0.5,
           "anchorColor": "red",
-          "hitBoxes": []
+          "hitBoxes": [
+            {
+              "id": "__hb_1777398330616015_0",
+              "name": "Hit Box 1",
+              "color": "green",
+              "x": 0.0,
+              "y": 0.0,
+              "width": 1.0,
+              "height": 1.0
+            }
+          ]
         },
         {
           "frame": 7,
           "anchorX": 0.5,
           "anchorY": 0.5,
           "anchorColor": "red",
-          "hitBoxes": []
+          "hitBoxes": [
+            {
+              "id": "__hb_1777398330616015_0",
+              "name": "Hit Box 1",
+              "color": "green",
+              "x": 0.0,
+              "y": 0.0,
+              "width": 1.0,
+              "height": 1.0
+            }
+          ]
         },
         {
           "frame": 8,
           "anchorX": 0.5,
           "anchorY": 0.5,
           "anchorColor": "red",
-          "hitBoxes": []
+          "hitBoxes": [
+            {
+              "id": "__hb_1777398330616015_0",
+              "name": "Hit Box 1",
+              "color": "green",
+              "x": 0.0,
+              "y": 0.0,
+              "width": 1.0,
+              "height": 1.0
+            }
+          ]
         },
         {
           "frame": 9,
           "anchorX": 0.5,
           "anchorY": 0.5,
           "anchorColor": "red",
-          "hitBoxes": []
+          "hitBoxes": [
+            {
+              "id": "__hb_1777398330616015_0",
+              "name": "Hit Box 1",
+              "color": "green",
+              "x": 0.0,
+              "y": 0.0,
+              "width": 1.0,
+              "height": 1.0
+            }
+          ]
         }
       ]
     },
@@ -167,9 +277,9 @@
               "id": "__hb_1776784969978588_2",
               "name": "Hit Box 1",
               "color": "green",
-              "x": 0.1875,
+              "x": 0.15625,
               "y": 0.34375,
-              "width": 0.71875,
+              "width": 0.65625,
               "height": 0.65625
             }
           ]
@@ -185,9 +295,9 @@
               "name": "Hit Box 1",
               "color": "green",
               "x": 0.15625,
-              "y": 0.375,
-              "width": 0.71875,
-              "height": 0.625
+              "y": 0.34375,
+              "width": 0.65625,
+              "height": 0.65625
             }
           ]
         }
@@ -244,7 +354,7 @@
               "id": "__hb_1776785221716406_1",
               "name": "Hit Box 1",
               "color": "green",
-              "x": 0.1875,
+              "x": 0.15625,
               "y": 0.25,
               "width": 0.65625,
               "height": 0.75
@@ -323,24 +433,24 @@
               "color": "green",
               "x": 0.21875,
               "y": 0.25,
-              "width": 0.6875,
+              "width": 0.625,
               "height": 0.75
             }
           ]
         },
         {
           "frame": 8,
-          "anchorX": 0.53125,
-          "anchorY": 0.625,
+          "anchorX": 0.5290578701808956,
+          "anchorY": 0.6399688958009332,
           "anchorColor": "red",
           "hitBoxes": [
             {
               "id": "__hb_1776785232265548_2",
               "name": "Hit Box 1",
               "color": "green",
-              "x": 0.1875,
+              "x": 0.21875,
               "y": 0.25,
-              "width": 0.6875,
+              "width": 0.625,
               "height": 0.75
             }
           ]
@@ -398,7 +508,7 @@
               "id": "__hb_1776785248321550_2",
               "name": "Hit Box 1",
               "color": "green",
-              "x": 0.1875,
+              "x": 0.15625,
               "y": 0.3125,
               "width": 0.71875,
               "height": 0.6875
@@ -417,7 +527,7 @@
               "color": "green",
               "x": 0.15625,
               "y": 0.3125,
-              "width": 0.6875,
+              "width": 0.71875,
               "height": 0.6875
             }
           ]
@@ -475,9 +585,9 @@
               "id": "__hb_1776785320399230_1",
               "name": "Hit Box 1",
               "color": "green",
-              "x": 0.15625,
+              "x": 0.125,
               "y": 0.34375,
-              "width": 0.75,
+              "width": 0.78125,
               "height": 0.65625
             }
           ]
@@ -552,9 +662,9 @@
               "id": "__hb_1776785339132749_1",
               "name": "Hit Box 1",
               "color": "green",
-              "x": 0.09375,
+              "x": 0.125,
               "y": 0.34375,
-              "width": 0.84375,
+              "width": 0.78125,
               "height": 0.65625
             }
           ]
@@ -569,9 +679,9 @@
               "id": "__hb_1776785342198912_2",
               "name": "Hit Box 1",
               "color": "green",
-              "x": 0.09375,
+              "x": 0.125,
               "y": 0.34375,
-              "width": 0.8125,
+              "width": 0.78125,
               "height": 0.65625
             }
           ]
@@ -629,9 +739,9 @@
               "id": "__hb_1776785403786097_1",
               "name": "Hit Box 1",
               "color": "green",
-              "x": 0.15625,
+              "x": 0.125,
               "y": 0.1875,
-              "width": 0.71875,
+              "width": 0.6875,
               "height": 0.8125
             }
           ]
@@ -648,10 +758,33 @@
               "color": "green",
               "x": 0.125,
               "y": 0.1875,
-              "width": 0.71875,
+              "width": 0.6875,
               "height": 0.8125
             }
           ]
+        }
+      ]
+    },
+    {
+      "id": "anim_9",
+      "name": "netankey",
+      "mediaFile": "media/netankey.png",
+      "startFrame": 0,
+      "endFrame": 0,
+      "fps": 12.0,
+      "loop": true,
+      "groupId": "__main__",
+      "anchorX": 0.4375,
+      "anchorY": 0.5625,
+      "anchorColor": "red",
+      "hitBoxes": [],
+      "frameRigs": [
+        {
+          "frame": 0,
+          "anchorX": 0.4375,
+          "anchorY": 0.5625,
+          "anchorColor": "red",
+          "hitBoxes": []
         }
       ]
     }

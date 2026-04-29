@@ -25,7 +25,9 @@ public class ViewerGame extends ApplicationAdapter {
     private BitmapFont  font;
     private GlyphLayout layout;
     private OrthographicCamera camera;
+    private OrthographicCamera hudCamera;
     private Viewport viewport;
+    private Viewport hudViewport;
 
     private GameState       state;
     private NetworkClient   network;
@@ -37,13 +39,16 @@ public class ViewerGame extends ApplicationAdapter {
     private float  retryDelay = 0f;
     private boolean tryingFallback = false;
 
-    // Camera tracking
-    private static final float CAM_SPEED = 4f;
-    private float targetCamX = WORLD_W / 2f;
-    private float targetCamY = WORLD_H / 2f;
-    private int cameraPlayerIndex = 0;
-    private float cameraCycleTimer = 0f;
-    private static final float CAMERA_CYCLE_TIME = 3f;
+    private enum Mode { PROBING_PRIMARY, PROBING_SECONDARY, WAITING_FOR_USER, ACTIVE }
+    private Mode mode = Mode.ACTIVE;
+    private int countPrimary = -1;
+    private int countSecondary = -1;
+    private float probeTimer = 0;
+
+    private com.badlogic.gdx.math.Rectangle primaryBtn = new com.badlogic.gdx.math.Rectangle();
+    private com.badlogic.gdx.math.Rectangle secondaryBtn = new com.badlogic.gdx.math.Rectangle();
+    private com.badlogic.gdx.math.Vector3 touchPoint = new com.badlogic.gdx.math.Vector3();
+
 
     public ViewerGame(NetworkClient network, String wsUrl) {
         this(network, wsUrl, null);
@@ -54,6 +59,9 @@ public class ViewerGame extends ApplicationAdapter {
         this.wsUrl = wsUrl;
         this.fallbackUrl = fallbackUrl;
         this.currentUrl = wsUrl;
+        if (fallbackUrl != null) {
+            this.mode = Mode.PROBING_PRIMARY;
+        }
     }
 
     @Override
@@ -64,9 +72,12 @@ public class ViewerGame extends ApplicationAdapter {
         font.setColor(Color.WHITE);
 
         camera = new OrthographicCamera();
+        hudCamera = new OrthographicCamera(WORLD_W, WORLD_H);
+        hudCamera.position.set(WORLD_W / 2f, WORLD_H / 2f, 0);
+        hudCamera.update();
+
         viewport = new FitViewport(WORLD_W, WORLD_H, camera);
-        camera.position.set(WORLD_W / 2f, WORLD_H / 2f, 0);
-        camera.update();
+        hudViewport = new FitViewport(WORLD_W, WORLD_H, hudCamera);
 
         state   = networkSupplied.state;
         tiles   = new TileMapRenderer();
@@ -85,15 +96,49 @@ public class ViewerGame extends ApplicationAdapter {
             }
             @Override public void onDisconnected() {
                 statusMsg = "Desconnectat";
-                handleConnectionFailure();
+                if (mode == Mode.ACTIVE) {
+                    handleConnectionFailure();
+                } else {
+                    handleProbeFinished(0);
+                }
             }
             @Override public void onError(String message) {
                 statusMsg = "Error: " + message;
-                handleConnectionFailure();
+                if (mode == Mode.ACTIVE) {
+                    handleConnectionFailure();
+                } else {
+                    handleProbeFinished(0);
+                }
             }
         });
 
-        network.connect(currentUrl);
+        if (mode == Mode.PROBING_PRIMARY) {
+            statusMsg = "Buscant millor servidor...";
+            startProbe(wsUrl);
+        } else {
+            network.connect(currentUrl);
+        }
+    }
+
+    private void startProbe(String url) {
+        probeTimer = 2.0f; // 2 segons de timeout per probe
+        network.disconnect();
+        network.connect(url);
+    }
+
+    private void handleProbeFinished(int count) {
+        if (mode == Mode.PROBING_PRIMARY) {
+            countPrimary = count;
+            Gdx.app.log("ViewerGame", "Probe Primary (" + wsUrl + "): " + count);
+            mode = Mode.PROBING_SECONDARY;
+            startProbe(fallbackUrl);
+        } else if (mode == Mode.PROBING_SECONDARY) {
+            countSecondary = count;
+            Gdx.app.log("ViewerGame", "Probe Secondary (" + fallbackUrl + "): " + count);
+            network.disconnect();
+            mode = Mode.WAITING_FOR_USER;
+            statusMsg = "Selecciona un servidor para conectar";
+        }
     }
 
     private void handleConnectionFailure() {
@@ -115,27 +160,36 @@ public class ViewerGame extends ApplicationAdapter {
     public void render() {
         float delta = Gdx.graphics.getDeltaTime();
 
+        handleInput();
+        network.processMessages();
+
+        updateCamera(delta);
+
+        if (mode != Mode.ACTIVE) {
+            probeTimer -= delta;
+            if (state.hasSnapshot) {
+                handleProbeFinished(state.snapshotPlayers.size);
+            } else if (probeTimer <= 0) {
+                handleProbeFinished(0);
+            }
+        }
+
         if (retryDelay > 0) {
             retryDelay -= delta;
             if (retryDelay <= 0) {
                 tryingFallback = false;
-                currentUrl = wsUrl;
                 network.connect(currentUrl);
                 statusMsg = "Reconnectant...";
             }
         }
-
-        network.processMessages();
         sprites.update(delta);
-
-        updateCamera(delta);
 
         viewport.apply();
         Gdx.gl.glClearColor(0.04f, 0.07f, 0.04f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         if (shouldShowWaitingScreen()) {
-            batch.setProjectionMatrix(camera.combined);
+            batch.setProjectionMatrix(hudCamera.combined);
             batch.begin();
             renderWaitingScreen();
             batch.end();
@@ -144,18 +198,11 @@ public class ViewerGame extends ApplicationAdapter {
             batch.setProjectionMatrix(camera.combined);
             batch.begin();
             
-            // Background con efecto Parallax
-            float depthSensitivity = 0.08f;
-            float depth = 5.0f; 
-            float projectionFactor = (float) Math.exp(-depth * depthSensitivity);
-            float viewW = viewport.getWorldWidth();
-            float viewH = viewport.getWorldHeight();
-            
-            batch.draw(backgroundTexture, 
-                       camera.position.x - viewW/2f, 
-                       camera.position.y - viewH/2f, 
-                       viewW, viewH, 
-                       (int)(camera.position.x * projectionFactor), 0, (int)viewW, (int)viewH, false, false);
+            // Dibujamos el fondo siguiendo a la cámara para que parezca infinito o cubra todo
+            float bgX = camera.position.x - WORLD_W / 2f;
+            float bgY = camera.position.y - WORLD_H / 2f;
+            batch.draw(backgroundTexture, bgX, bgY, WORLD_W, WORLD_H,
+                       (int)bgX, (int)-bgY, (int) WORLD_W, (int) WORLD_H, false, false);
 
             tiles.render(batch, WORLD_H, state.layerTransforms);
 
@@ -167,11 +214,7 @@ public class ViewerGame extends ApplicationAdapter {
             batch.end();
 
             // 2. Renderizar el HUD (Cámara estática / Viewport puro)
-            // Esto asegura que el HUD no se mueva con la cámara del mundo y se quede fijo en la pantalla
-            batch.setProjectionMatrix(viewport.getCamera().combined);
-            // Reseteamos la posición de la cámara del viewport para el HUD si fuera necesario, 
-            // pero viewport.getCamera() ya nos da la matriz de proyección "limpia" de 0,0 a W,H
-            camera.update(); // Asegurar que no hay transformaciones pendientes
+            batch.setProjectionMatrix(hudCamera.combined);
 
             batch.begin();
             renderHUD();
@@ -180,36 +223,53 @@ public class ViewerGame extends ApplicationAdapter {
     }
 
     private void updateCamera(float delta) {
-        if (state.players.size == 0) {
-            targetCamX = WORLD_W / 2f;
-            targetCamY = WORLD_H / 2f;
-        } else {
-            // Seguir al que va más adelantado (derecha)
-            float maxX = -1000000f;
+        if (state.players.size > 0) {
+            float avgX = 0, avgY = 0;
             for (int i = 0; i < state.players.size; i++) {
                 GameState.Player p = state.players.get(i);
-                if (p.x > maxX) {
-                    maxX = p.x;
+                avgX += p.x + p.width / 2f;
+                avgY += (WORLD_H - p.y - p.height / 2f);
+            }
+            avgX /= state.players.size;
+            avgY /= state.players.size;
+
+            float lerp = 3f * delta;
+            camera.position.x += (avgX - camera.position.x) * lerp;
+            camera.position.y += (avgY - camera.position.y) * lerp;
+            camera.update();
+        }
+    }
+
+    private void handleInput() {
+        if (Gdx.input.justTouched()) {
+            touchPoint.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+            viewport.unproject(touchPoint);
+
+            if (primaryBtn.contains(touchPoint.x, touchPoint.y)) {
+                if (mode == Mode.WAITING_FOR_USER) {
+                    mode = Mode.ACTIVE;
+                    switchToServer(wsUrl);
+                } else if (mode == Mode.ACTIVE) {
+                    switchToServer(wsUrl);
+                }
+            } else if (secondaryBtn.contains(touchPoint.x, touchPoint.y)) {
+                if (mode == Mode.WAITING_FOR_USER) {
+                    mode = Mode.ACTIVE;
+                    switchToServer(fallbackUrl);
+                } else if (mode == Mode.ACTIVE) {
+                    switchToServer(fallbackUrl);
                 }
             }
-            // Centramos la cámara un poco por delante del jugador más avanzado
-            targetCamX = maxX + 40f; 
-            targetCamY = WORLD_H / 2f;
         }
+    }
 
-        float halfViewW = viewport.getWorldWidth() * 0.5f;
-        float halfViewH = viewport.getWorldHeight() * 0.5f;
-        
-        // No limitamos maxX por la derecha para permitir scroll infinito si el nivel lo es,
-        // pero aquí limitamos según WORLD_W (ancho total del mapa)
-        float mapWidth = 64 * 16; // El tilemap tiene 64 columnas
-        targetCamX = Math.max(halfViewW, Math.min(mapWidth - halfViewW, targetCamX));
-        targetCamY = Math.max(halfViewH, Math.min(WORLD_H - halfViewH, targetCamY));
-
-        float lerp = Math.min(1f, 2.0f * delta); // Movimiento suave
-        camera.position.x += (targetCamX - camera.position.x) * lerp;
-        camera.position.y += (targetCamY - camera.position.y) * lerp;
-        camera.update();
+    private void switchToServer(String url) {
+        if (url == null || url.equals(currentUrl)) return;
+        currentUrl = url;
+        tryingFallback = false;
+        statusMsg = "Cambiando a " + getServerLabel(url) + "...";
+        network.disconnect();
+        network.connect(currentUrl);
     }
 
     private boolean shouldShowWaitingScreen() {
@@ -221,33 +281,60 @@ public class ViewerGame extends ApplicationAdapter {
     private void renderWaitingScreen() {
         font.getData().setScale(0.8f);
         font.setColor(1f, 1f, 1f, 1f);
-        String msg = "Esperando partida...";
-        if (state.hasSnapshot && state.snapshotPlayers.size < 2) {
+        String msg = "Pico Park Viewer";
+        if (mode == Mode.WAITING_FOR_USER) {
+            msg = "Selecciona Servidor";
+        } else if (state.hasSnapshot && state.snapshotPlayers.size < 2) {
             msg = "Esperando jugadores (Mín. 2)...";
+        } else if (!state.connected && mode == Mode.ACTIVE) {
+            msg = "Conectando...";
         }
+        
         layout.setText(font, msg);
         float tx = (WORLD_W - layout.width) / 2f;
-        float ty = WORLD_H / 2f + layout.height / 2f + 10;
+        float ty = WORLD_H / 2f + layout.height / 2f + 15;
         font.draw(batch, msg, tx, ty);
 
         font.getData().setScale(0.5f);
-        if (!state.connected) {
-            font.setColor(1f, 0.7f, 0.2f, 1f);
-            layout.setText(font, statusMsg);
-            float sx = (WORLD_W - layout.width) / 2f;
-            font.draw(batch, statusMsg, sx, WORLD_H / 2f - 10);
+        if ((mode == Mode.ACTIVE || mode == Mode.WAITING_FOR_USER) && fallbackUrl != null) {
+            float btnW = 110, btnH = 30;
+            float centerX = WORLD_W / 2f;
 
+            // Botón Primario
+            primaryBtn.set(centerX - btnW - 10, WORLD_H / 2f - 20, btnW, btnH);
+            boolean isPrimaryActive = mode == Mode.ACTIVE && currentUrl.equals(wsUrl);
+            
+            // Dibujar fondo de botón (opcional, pero ayuda visualmente)
+            // Aquí usamos el color de la fuente para indicar estado
+            font.setColor(isPrimaryActive ? Color.CYAN : Color.WHITE);
+            String pLabel = getServerLabel(wsUrl);
+            if (countPrimary >= 0) pLabel += " [" + countPrimary + "P]";
+            layout.setText(font, pLabel);
+            font.draw(batch, pLabel, primaryBtn.x + (btnW - layout.width) / 2f, primaryBtn.y + 20);
+
+            // Botón Secundario
+            secondaryBtn.set(centerX + 10, WORLD_H / 2f - 20, btnW, btnH);
+            boolean isSecondaryActive = mode == Mode.ACTIVE && currentUrl.equals(fallbackUrl);
+            
+            font.setColor(isSecondaryActive ? Color.CYAN : Color.WHITE);
+            String sLabel = getServerLabel(fallbackUrl);
+            if (countSecondary >= 0) sLabel += " [" + countSecondary + "P]";
+            layout.setText(font, sLabel);
+            font.draw(batch, sLabel, secondaryBtn.x + (btnW - layout.width) / 2f, secondaryBtn.y + 20);
+        }
+
+        if (mode == Mode.ACTIVE) {
             font.getData().setScale(0.4f);
-            font.setColor(0.7f, 0.7f, 0.7f, 1f);
-            String urlMsg = "Servidor: " + currentUrl;
-            layout.setText(font, urlMsg);
-            float ux = (WORLD_W - layout.width) / 2f;
-            font.draw(batch, urlMsg, ux, WORLD_H / 2f - 25);
-        } else {
-            font.setColor(0.4f, 1f, 0.4f, 1f);
-            String connMsg = "Conectado - Jugadores: " + state.snapshotPlayers.size + "/2";
-            layout.setText(font, connMsg);
-            font.draw(batch, connMsg, (WORLD_W - layout.width) / 2f, WORLD_H / 2f - 10);
+            if (!state.connected) {
+                font.setColor(1f, 0.7f, 0.2f, 1f);
+                layout.setText(font, statusMsg);
+                font.draw(batch, statusMsg, (WORLD_W - layout.width) / 2f, 15);
+            } else {
+                font.setColor(0.4f, 1f, 0.4f, 1f);
+                String connMsg = "Conectado: " + state.snapshotPlayers.size + " jugadores";
+                layout.setText(font, connMsg);
+                font.draw(batch, connMsg, (WORLD_W - layout.width) / 2f, 15);
+            }
         }
 
         font.setColor(Color.WHITE);
@@ -275,8 +362,7 @@ public class ViewerGame extends ApplicationAdapter {
                 GameState.Player p = state.players.get(i);
                 float[] c = network.getPlayerColor(p.joinOrder);
                 font.setColor(c[0], c[1], c[2], 1f);
-                String marker = (i == cameraPlayerIndex) ? "> " : "  ";
-                font.draw(batch, marker + p.name + " " + p.score, sx, sy);
+                font.draw(batch, p.name + " " + p.score, sx, sy);
                 sy -= 8;
             }
             font.setColor(Color.WHITE);
@@ -303,6 +389,13 @@ public class ViewerGame extends ApplicationAdapter {
         font.getData().setScale(1f);
     }
 
+    private String getServerLabel(String url) {
+        if (url == null) return "N/A";
+        if (url.contains("10.0.2.2") || url.contains("localhost") || url.contains("127.0.0.1")) return "LOCAL";
+        if (url.contains("ieti.site") || url.contains("pico")) return "REMOTO";
+        return "SERVER";
+    }
+
     private String phaseLabel() {
         if ("waiting".equals(state.phase))  return "ESPERANT  " + state.countdownSeconds + "s";
         if ("playing".equals(state.phase))  return "EN JOC";
@@ -313,6 +406,7 @@ public class ViewerGame extends ApplicationAdapter {
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height);
+        hudViewport.update(width, height, true);
     }
 
     @Override

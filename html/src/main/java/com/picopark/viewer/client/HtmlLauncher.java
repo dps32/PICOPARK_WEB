@@ -22,11 +22,15 @@ public class HtmlLauncher extends GwtApplication {
         WebSockets.initiate();
 
         String wsUrl = getQueryParam("ws");
-        if (wsUrl == null || wsUrl.isEmpty()) wsUrl = buildDefaultWsUrl();
+        String remoteUrl = "wss://pico5.ieti.site";
+        if (wsUrl == null || wsUrl.isEmpty()) {
+            wsUrl = buildDefaultWsUrl();
+        }
 
         GameState state = new GameState();
         HtmlNetworkClient network = new HtmlNetworkClient(state);
-        return new ViewerGame(network, wsUrl);
+        // Passamos wsUrl (local/actual) e o remoto como fallback para probe
+        return new ViewerGame(network, wsUrl, remoteUrl);
     }
 
     private native String getQueryParam(String name) /*-{
